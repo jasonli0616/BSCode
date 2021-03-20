@@ -1,8 +1,9 @@
 from tkinter import *
 from tkinter import ttk
 from tkinter import filedialog
-import subprocess
 from pynput.keyboard import Key, Controller
+import subprocess
+from platform import system
 
 # initialize
 root = Tk()
@@ -13,6 +14,11 @@ root.title("BSCode")
 style = ttk.Style(root)
 root.tk.call('source', 'files/lightmode/azure.tcl')
 style.theme_use('azure')
+
+if str(system()) == "Darwin" or str(system()) == "Linux":
+    python = "python3"
+elif str(system()) == "Windows":
+    python = "python"
 
 bgColorStr = "#EFEFEF"
 fileChosen = False
@@ -87,13 +93,10 @@ def runfunc(pyFile):
     f = open(pyFile, "w")
     f.write(text_input_text)
     f.close()
-    try:
-        subprocess.call(["python3", pyFile])
-    except:
-        subprocess.call(["python", pyFile])
+    subprocess.call([python, pyFile])
     #Get console output here
     with open("output.txt", "w") as output:
-        subprocess.call(["python3", pyFile], stdout=output)
+        subprocess.call([python, pyFile], stdout=output)
     output = open("output.txt", "r")
     outputstr = output.read()
     OutputLabel.destroy()

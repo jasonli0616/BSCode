@@ -1,31 +1,22 @@
 from tkinter import *
 import subprocess
-import platform
+from platform import system
 
 root = Tk()
 root.geometry("350x150")
 root.title("BSCode")
 
+if str(system()) == "Darwin" or str(system()) == "Linux":
+    python = "python3"
+elif str(system()) == "Windows":
+    python = "python"
+
 def run_dark():
-    if str(platform.system()) == "Darwin" or str(platform.system()) == "Linux":
-        try:
-            subprocess.call(["python3", "BSCode_dark.py"])
-            print('1')
-        except:
-            subprocess.call(["python3", "BSCode_dark.py"])
-            print('2')
-    elif str(platform.system()) == "Windows":
-        subprocess.call(["python", "BSCode_dark.py"])
+    subprocess.call([python, "BSCode_dark.py"])
 
 
 def run_light():
-    if str(platform.system()) == "Darwin" or str(platform.system()) == "Linux":
-        try:
-            subprocess.call(["python3", "BSCode_light.py"])
-        except:
-            subprocess.call(["python", "BSCode_light.py"])
-    elif str(platform.system()) == "Windows":
-        subprocess.call(["python", "BSCode_light.py"])
+    subprocess.call([python, "BSCode_light.py"])
 
 
 Label(text="").pack()
