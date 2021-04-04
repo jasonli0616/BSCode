@@ -4,6 +4,18 @@ from tkinter import filedialog
 from pynput.keyboard import Key, Controller
 import subprocess
 from platform import system
+import os
+
+#dark mode:
+tkTheme = "files/darkmode/azure.tcl"
+bgColorStr = "#666666"
+inputFgColorStr = "#F7F7F7"
+runBgColorStr = "#666666"
+#light mode:
+#tkTheme = "files/lightmode/azure.tcl"
+#bgColorStr = "#EFEFEF"
+#inputFgColorStr = "#000000"
+#runBgColorStr = "#FFFFFF"
 
 # initialize
 root = Tk()
@@ -12,7 +24,7 @@ root.winfo_screenheight()
 root.winfo_screenwidth()
 root.title("BSCode")
 style = ttk.Style(root)
-root.tk.call('source', 'files/darkmode/azure.tcl')
+root.tk.call('source', tkTheme)
 style.theme_use('azure')
 
 if str(system()) == "Darwin" or str(system()) == "Linux":
@@ -20,8 +32,8 @@ if str(system()) == "Darwin" or str(system()) == "Linux":
 elif str(system()) == "Windows":
     python = "python"
 
-bgColorStr = "#666666"
 fileChosen = False
+openedFile = False
 
 # clears shell output txt file
 f = open("output.txt", "w")
@@ -32,7 +44,7 @@ credit = ttk.Label(root, text="BSCode   © Bot Master 2021")
 credit.config(font=('*', 15))
 credit.pack()
 
-text_input = Text(root, bg=bgColorStr, fg='#F7F7F7', width=200, height=30)
+text_input = Text(root, bg=bgColorStr, fg=inputFgColorStr, width=200, height=30)
 text_input.configure(font=("Courier", 12))
 text_input.pack()
 
@@ -63,9 +75,14 @@ def on_press(key):
         keyboard.release(' ')
 
 def open_file():
-    global pyFile
-    pyFile = filedialog.askopenfilename(filetypes=[("Python files", ".py")])
-    return pyFile
+    global pyFile, openedFile
+    pyFilePath = filedialog.askopenfilename(filetypes=[("Python files", ".py")])
+    pyFile = str(os.path.split(pyFilePath)[1])
+    pyFileContents = open(pyFile, 'r')
+    pyFileContentsStr = pyFileContents.read()
+    text_input.insert('1.0', pyFileContentsStr)
+    fileChosen = True
+    openedFile = True
 
 def new_file():
     def new_file_save_func():
@@ -100,14 +117,17 @@ def runfunc(pyFile):
     output = open("output.txt", "r")
     outputstr = output.read()
     OutputLabel.destroy()
-    OutputLabel = Label(consoleFrame, text=outputstr, bg="#666666")
+    OutputLabel = Label(consoleFrame, text=outputstr, bg=runBgColorStr)
     OutputLabel.config(font=("Courier", 12))
     OutputLabel.pack(side=LEFT)
 
 def run_button_func():
     global pyFile, fileChosen
     if fileChosen == False:
-        runfunc(open_file())
+        open_file()
+        fileChosen = True
+        openedFile = True
+        runfunc(pyFile)
         fileChosen = True
     elif fileChosen == True:
         runfunc(pyFile)
@@ -123,9 +143,9 @@ def clearshell():
         okButton = ttk.Button(errorWindow, text="OK", command=ok_button_func)
         okButton.pack()
     else:
-        global OutputLabel, pyFile
+        global OutputLabel
         OutputLabel.destroy()
-        f = open(pyFile, "w")
+        f = open('output.txt', "w")
         f.write("")
         f.close()
 
@@ -140,7 +160,12 @@ def cleartext():
         okButton = ttk.Button(errorWindow, text="OK", command=okButtonFunc)
         okButton.pack()
     else:
+        global pyFile
         text_input.delete(1.0, END)
+        f = open(pyFile, "w")
+        f.write("")
+        f.close()
+
 
 
 printButton = ttk.Button(buttonFrame, text='Run', command=run_button_func)
