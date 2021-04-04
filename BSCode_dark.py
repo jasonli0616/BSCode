@@ -32,7 +32,7 @@ credit = ttk.Label(root, text="BSCode   © Bot Master 2021")
 credit.config(font=('*', 15))
 credit.pack()
 
-text_input = Text(root, bg=bgColorStr, fg='#F7F7F7', width=200, height=40)
+text_input = Text(root, bg=bgColorStr, fg='#F7F7F7', width=200, height=30)
 text_input.configure(font=("Courier", 12))
 text_input.pack()
 
