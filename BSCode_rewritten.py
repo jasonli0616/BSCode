@@ -1,11 +1,12 @@
 from tkinter import *
 from tkinter import ttk as ttk
-from tkinter.filedialog import askopenfilename, askopenfile
+from tkinter.filedialog import askopenfilename, askopenfile, askdirectory, asksaveasfile
 from ttkthemes import ThemedTk
 import subprocess
 import os
 import platform
 import webbrowser
+import keyboard
 
 
 
@@ -32,6 +33,8 @@ compilers = {
 }
 
 fileChosen = False
+fileSaved = False
+fileLastSave = ''
 
 '''
 ------------------------------
@@ -80,31 +83,91 @@ def newWin(
         winBtn2.pack()
 
 
+def key_press(event):
+    '''
+    On key press event
+    '''
+    if str(event.state) == '8' and str(event.char) == 's':
+        saveBtnDo()
+
+    if str(event.char) == '(':
+        textInput.insert(INSERT, ')')
+        keyboard.press_and_release('left')
+
+    if str(event.char) == '[':
+        textInput.insert(INSERT, ']')
+        keyboard.press_and_release('left')
+
+    if str(event.char) == '{':
+        textInput.insert(INSERT, '}')
+        keyboard.press_and_release('left')
+
+    if str(event.char) == '\'':
+        textInput.insert(INSERT, '\'')
+        keyboard.press_and_release('left')
+
+    if str(event.char) == '"':
+        textInput.insert(INSERT, '"')
+        keyboard.press_and_release('left')
+
+    checkIsSaved()
+
+
+def checkIsSaved():
+    '''
+    Check if file is saved
+    '''
+    global fileSaved, fileLastSave
+
+    try:
+        if fileLastSave != textInput.get(1.0, 'end-1c'):
+            root.title(root_title + ' - ' + fileName + '*')
+        else:
+            root.title(root_title + ' - ' + fileName)
+    except NameError:
+        saveNewFileDo()
+
+
+def saveNewFileDo():
+    '''
+    Saves new file
+    '''
+    global fileName, filePath, filePathName, fileExt, fileChosen, fileSaved
+
+    savefileDialog = asksaveasfile(title='Save this file', initialdir='/', initialfile='Untitled', defaultextension='.txt', filetypes=[('Python', '*.py'), ('Node.js', '*.js'), ('Swift', '*.swift'), ('HTML', '*.html'), ('CSS', '*.css')])
+    fileName = str(os.path.split(savefileDialog)[1])
+    filePath = str(os.path.split(savefileDialog)[0])
+    filePathName = str(savefileDialog)
+    fileExt = str(os.path.splitext(fileName)[1])
+
+
 def openFileBtnDo():
     '''
     Opens file dialog, user chooses file
     '''
-    global fileName, filePath, filePathName, fileExt, fileChosen
+    global fileName, filePath, filePathName, fileExt, fileChosen, fileSaved, fileLastSave
 
-    openFileDialog = askopenfilename(title='Select file to open', initialdir='/', filetypes=[('Python', '*.py'), ('Node.js', '*.js'), ('Swift', '*.swift'), ('HTML', '*.html')])
+    openFileDialog = askopenfilename(title='Select file to open', initialdir='/', filetypes=[('Python', '*.py'), ('Node.js', '*.js'), ('Swift', '*.swift'), ('HTML', '*.html'), ('CSS', '*.css')])
     fileName = str(os.path.split(openFileDialog)[1])
     filePath = str(os.path.split(openFileDialog)[0])
     filePathName = str(openFileDialog)
     fileExt = str(os.path.splitext(fileName)[1])
     root.title(root_title + ' - ' + fileName)
     fileChosen = True
+    fileSaved = True
 
     with open(filePathName) as f:
         content = f.read()
         textInput.delete('1.0', 'end')
         textInput.insert('1.0', content)
+        fileLastSave = content
 
 
 def runBtnDo():
     '''
     Button to run script
     '''
-    global fileName, filePath, filePathName, fileExt, compilers, fileChosen
+    global fileName, filePath, filePathName, fileExt, compilers, fileChosen, fileSaved
 
     noRun = False
     errorReason = ''
@@ -114,6 +177,11 @@ def runBtnDo():
         newWin(
             title='Error:',
             content1='No file chosen',
+        )
+    elif fileSaved == False:
+        newWin(
+            title='File not saved',
+            content1='Please save your file and try again',
         )
     else:
         if str(platform.system()) == 'Windows':
@@ -139,17 +207,21 @@ def saveBtnDo():
     '''
     Button to save changes to file
     '''
-    global fileName, filePath, filePathName, fileExt, fileChosen
+    global fileName, filePath, filePathName, fileExt, fileChosen, fileSaved, fileLastSave
 
     if fileChosen == False:
-        newWin(
-            title='Error:',
-            content1='No file chosen'
-        )
+        saveNewFileDo()
     else:
         saveContent = textInput.get(1.0, 'end-1c')
         with open(filePathName, 'w') as f:
             f.write(saveContent)
+        with open(filePathName) as f:
+            content = f.read()
+            textInput.delete('1.0', 'end')
+            textInput.insert('1.0', content)
+        root.title(root_title + ' - ' + fileName)
+        fileLastSave = saveContent
+        fileSaved = True
 
 
 def settingsBtnDo():
@@ -260,6 +332,8 @@ saveBtn.pack(side=LEFT)
 # Settings button
 settingsBtn = ttk.Button(btnFrame, text='Settings', command=settingsBtnDo)
 settingsBtn.pack(side=LEFT)
+
+root.bind("<Key>", key_press)
 
 '''
 ------------------------------
