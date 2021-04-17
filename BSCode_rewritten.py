@@ -58,7 +58,7 @@ def newWin(
     newWin.configure(bg='#464646')
     newWin.geometry(winSize)
     if title != '':
-        winTitleLab = ttk.Label(newWin, text=title, style="NewWin.TLabel")
+        winTitleLab = ttk.Label(newWin, text=title, style="Subtitle.TLabel")
         winTitleLab.pack()
     if content1 != '':
         winLab1 = ttk.Label(newWin, text=content1, padding=5)
@@ -231,7 +231,13 @@ titleLab.pack()
 # Text editor part
 textInputFrame = ttk.Frame(root)
 textInputFrame.pack()
-textInput = Text(textInputFrame, bg='#666666', fg='#F7F7F7', width=180, height=40)
+if str(platform.system()) == 'Windows':
+    textInputWidth = 120
+    textInputHeight = 30
+else:
+    textInputWidth = 180
+    textInputHeight = 40
+textInput = Text(textInputFrame, bg='#666666', fg='#F7F7F7', width=textInputWidth, height=textInputHeight)
 textInput.configure(font=("Courier", 12))
 textInput.pack()
 
