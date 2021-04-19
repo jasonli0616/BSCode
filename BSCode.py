@@ -1,7 +1,6 @@
 from tkinter import *
 from tkinter import ttk as ttk
-from tkinter.filedialog import askopenfilename, askopenfile, askdirectory, asksaveasfile
-import tkinter.tix as tix
+from tkinter.filedialog import askopenfilename, asksaveasfile
 from ttkthemes import ThemedTk
 import subprocess
 import os
@@ -199,6 +198,10 @@ def runBtnDo():
     elif fileExt == '.css' or fileExt == '.txt':
         noRun = True
         errorReason = f'This is a {fileExt} file'
+        newWin(
+                title='Error:',
+                content1=f'This is a {fileExt} file',
+            )
 
     # Run file in terminal (or web browser for .html)
     else:
@@ -264,7 +267,8 @@ def settingsBtnDo():
     def fontNameSizeOverwriteDo():
         # Overwrite font name
         global textInput, textInputFont
-        textInput.config(font=(str(fontNameOverwriteEntry.get()), str(fontSizeVar.get())))
+        textInputFont = [str(fontNameOverwriteEntry.get()), int(fontSizeVar.get())]
+        textInput.config(font=(str(fontNameOverwriteEntry.get()), int(fontSizeVar.get())))
 
     # Initialize settings
     settingsWin = Toplevel()
@@ -354,26 +358,7 @@ titleFrame.pack()
 titleLab = ttk.Label(titleFrame, text="BSCode", style='Title.TLabel')
 titleLab.pack()
 
-# Text editor + Scroll bar
-textInputFrame = ttk.Frame(root)
-textInputFrame.pack()
-if str(platform.system()) == 'Windows':
-    textInputWidth = 120
-    textInputHeight = 30
-else:
-    textInputWidth = 180
-    textInputHeight = 40
-scrollbar = Scrollbar(textInputFrame)
-scrollbar.pack(side=RIGHT, fill=Y)
-textInput = Text(textInputFrame, bg='#666666', fg='#F7F7F7', width=textInputWidth, height=textInputHeight, yscrollcommand=scrollbar.set)
-if str(platform.system()) == 'Darwin':
-    textInputFont = ('Monaco', 12)
-elif str(platform.system()) == 'Windows' or str(platform.system()) == 'Linux':
-    textInputFont = ('Courier New', 12)
-textInput.insert(1.0, 'Welcome to the new version of BSCode!\n\nTo open a file, click "Open"\nTo make a new file, start typing\nTo change settings, click "Settings"\nTo run your file, click "Run in terminal"')
-textInput.configure(font=textInputFont)
-textInput.pack(side=LEFT)
-scrollbar.config(command=textInput.yview)
+
 
 # Create section for buttons
 btnFrame = ttk.Frame(root, padding=(30, 10))
@@ -394,6 +379,29 @@ saveBtn.pack(side=LEFT)
 # Settings button
 settingsBtn = ttk.Button(btnFrame, text='Settings', command=settingsBtnDo)
 settingsBtn.pack(side=LEFT)
+
+
+
+# Text editor + Scroll bar
+textInputFrame = ttk.Frame(root)
+textInputFrame.pack()
+if str(platform.system()) == 'Windows':
+    textInputWidth = 120
+    textInputHeight = 30
+else:
+    textInputWidth = 180
+    textInputHeight = 40
+scrollbar = Scrollbar(textInputFrame)
+scrollbar.pack(side=RIGHT, fill=Y)
+textInput = Text(textInputFrame, bg='#555555', fg='#F7F7F7', width=textInputWidth, height=textInputHeight, yscrollcommand=scrollbar.set)
+if str(platform.system()) == 'Darwin':
+    textInputFont = ('Monaco', 12)
+elif str(platform.system()) == 'Windows' or str(platform.system()) == 'Linux':
+    textInputFont = ('Courier New', 12)
+textInput.insert(1.0, 'Welcome to the new version of BSCode!\n\nTo open a file, click "Open"\nTo make a new file, start typing\nTo change settings, click "Settings"\nTo run your file, click "Run in terminal"')
+textInput.configure(font=textInputFont)
+textInput.pack(side=LEFT)
+scrollbar.config(command=textInput.yview)
 
 root.bind("<Key>", key_press)
 
