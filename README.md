@@ -1,5 +1,9 @@
 # BSCode
 
+## Download:
+[Windows](https://github.com/jasonli0616/BSCode/raw/main/BSCode%20(windows).zip)\
+[Mac](https://github.com/jasonli0616/BSCode/raw/main/BSCode%20(mac).zip)
+
 ## What is this?
 Light weight text editor that works with Python, Node.js, Swift, HTML, CSS
 
