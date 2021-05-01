@@ -416,7 +416,7 @@ Menubar
 ------------------------------
 '''
 
-# File menu
+# Menubar shrortcuts
 if str(platform.system()) == 'Darwin':
     openShortcut = 'Cmd+O'
     newShortcut = 'Cmd+N'
@@ -428,13 +428,14 @@ elif str(platform.system()) == 'Windows' or str(platform.system()) == 'Linux':
     saveShortcut = 'Ctrl+S'
     runShortcut = 'Ctrl+R'
 
-
+# Add File menubar
 filemenu = Menu(menubar, tearoff=0)
 filemenu.add_command(label='Open', command=openFileBtnDo, accelerator=openShortcut)
 filemenu.add_command(label='New', command=saveNewFileDo, accelerator=newShortcut)
 filemenu.add_command(label='Save', command=saveBtnDo, accelerator=saveShortcut)
 menubar.add_cascade(label='File', menu=filemenu)
 
+# Add Run menubar
 runmenu = Menu(menubar, tearoff=0)
 runmenu.add_command(label='Run', command=runBtnDo, accelerator=runShortcut)
 menubar.add_cascade(label='Run', menu=runmenu)
@@ -445,7 +446,7 @@ menubar.add_cascade(label='Run', menu=runmenu)
 
 
 
-
+# Run
 if __name__ == '__main__':
     root.config(menu=menubar)
     root.mainloop()
