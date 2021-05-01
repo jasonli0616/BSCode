@@ -1,7 +1,20 @@
+'''
+------------------------------
+
+BSCode
+
+Made by:
+Jason Li
+
+------------------------------
+'''
+
+
+
 from tkinter import *
 from tkinter import ttk as ttk
 from tkinter.filedialog import askopenfilename, asksaveasfile
-from ttkthemes import ThemedTk
+from ttkthemes import ThemedTk #pip install ttkthemes
 import subprocess
 import os
 import platform
