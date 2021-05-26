@@ -1,0 +1,23 @@
+{
+  "name": "bscode",
+  "version": "3.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jasonli0616/BSCode.git"
+  },
+  "author": "Jason Li",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jasonli0616/BSCode/issues"
+  },
+  "homepage": "https://github.com/jasonli0616/BSCode#readme",
+  "dependencies": {
+    "electron": "^13.0.1",
+    "electron-reload": "^1.5.0"
+  }
+}
