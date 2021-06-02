@@ -1,5 +1,26 @@
-const { app, BrowserWindow, screen, dialog, ipcMain } = require('electron');
+/*
+------------------------------
+
+BSCode Electron Edition
+
+Author: Jason Li
+
+------------------------------
+
+npm install electron
+npm install electron-reload
+
+------------------------------
+*/
+
+
+const { app, BrowserWindow, screen, dialog, ipcMain, Menu } = require('electron');
 require('electron-reload')(__dirname);
+const isMac = process.platform === 'darwin';
+
+
+// Boilerplate Electron code
+//------------------------------
 
 function createWindow() {
     const { width, height } = screen.getPrimaryDisplay().workAreaSize
@@ -24,16 +45,59 @@ app.whenReady().then(() => {
 });
 
 app.on('window-all-closed', function() {
-    if (process.platform !== 'darwin') {app.quit()};
+    if (!isMac) {app.quit()};
 });
 
+//------------------------------
 
+
+
+// Menubar
+//------------------------------
+
+// If is mac, change Ctrl to Cmd
+/*
+let Ctrl = '';
+if (isMac) ctrl = 'Cmd'
+else ctrl = 'Ctrl'
+const menubar = Menu.buildFromTemplate(
+    
+    [
+    // If is mac, show app menu
+    ...(isMac ? [{ role: 'appMenu' }] : []),
+
+    // File menu
+    {
+        label: 'File',
+        submenu: [
+            {
+                label: 'Open file',
+                accelerator: `${ctrl}+O`,
+                click: async () => {
+                    // Show file dialog
+                    funcReturn = await openFile();
+                    // Return file dialog to renderer js
+                }
+            }
+        ]
+    }
+]);
+Menu.setApplicationMenu(menubar);
+*/
+
+//------------------------------
+
+
+
+// When open file button pressed
 ipcMain.on('get-file', async (event) => {
+    // Show file dialog
     funcReturn = await openFile();
-    event.reply('post-file', funcReturn)
+    // Return file dialog to renderer js
+    event.reply('post-file', funcReturn);
 })
 
-
+// Show file dialog
 async function openFile() {
     let fileName = '';
     let canceled = false;
@@ -53,3 +117,15 @@ async function openFile() {
     })
     return [fileName, canceled]
 }
+
+ipcMain.on('show-error', (event, errorTitle, errorMsg) => {
+    dialog.showErrorBox(errorTitle, errorMsg);
+});
+
+ipcMain.on('show-msg', (event, msgContent, msgDetail) => {
+    dialog.showMessageBoxSync({
+        type: 'info',
+        message: msgContent,
+        detail: msgDetail
+    });
+});
