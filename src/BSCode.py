@@ -13,12 +13,14 @@ Jason Li
 
 from tkinter import *
 from tkinter import ttk as ttk
-from tkinter.filedialog import askopenfilename, asksaveasfile
+from tkinter import filedialog
+from tkinter import messagebox
 from ttkthemes import ThemedTk #pip install ttkthemes
 import subprocess
 import os
 import platform
 import webbrowser
+import threading
 
 
 
@@ -49,10 +51,6 @@ compilers = {
 if str(platform.system()) == 'Windows':
     compilers['.py'] = 'python'
 
-fileChosen = False
-fileSaved = False
-fileLastSave = ''
-
 '''
 ------------------------------
 '''
@@ -64,129 +62,74 @@ Functions
 ------------------------------
 '''
 
-def newWin(
-        winSize='350x200',
-        title='', content1='', content2='', content3='', content4='',
-        button1txt='', button1cmd='',
-        button2txt='', button2cmd=''
-    ):
+def addToTree(path, parentiid=''):
     '''
-    Creates popup window with error/success message
-    This takes arguments for window size + title + content (text) + buttons
+    Creates file tree
     '''
-    newWin = Toplevel()
-    newWin.configure(bg='#464646')
-    newWin.geometry(winSize)
-    if title != '':
-        winTitleLab = ttk.Label(newWin, text=title, style="Subtitle.TLabel")
-        winTitleLab.pack()
-    if content1 != '':
-        winLab1 = ttk.Label(newWin, text=content1, padding=5)
-        winLab1.pack()
-    if content2 != '':
-        winLab2 = ttk.Label(newWin, text=content2, padding=5)
-        winLab2.pack()
-    if content3 != '':
-        winLab3 = ttk.Label(newWin, text=content3, padding=5)
-        winLab3.pack()
-    if content4 != '':
-        winLab4 = ttk.Label(newWin, text=content4, padding=5)
-        winLab4.pack()
-    if button1txt != '' and button1cmd != '':
-        winBtn1 = ttk.Button(newWin, text=button1txt, command=button1cmd)
-        winBtn1.pack()
-    if button2txt != '' and button1cmd != '':
-        winBtn2 = ttk.Button(newWin, text=button2txt, command=button2cmd)
-        winBtn2.pack()
+    pathFiles = os.listdir(path)
+    for file in pathFiles:
+        values = []
+        for i in tree.item(parentiid)['values']:
+            values.append(i)
+        values.append(tree.item(parentiid)['text'])
+        tree.insert(parentiid, pathFiles.index(file), f'{parentiid}id{pathFiles.index(file)}', text=file, values=values)
+    for file in pathFiles:
+        if os.path.isdir(f'{path}/{file}'):
+            iid = f'{parentiid}id{pathFiles.index(file)}'
+            newDir = f'{path}/{file}'
+            threading.Thread(target=lambda:addToTree(newDir, iid)).start()
+    tree.bind("<Double-1>", treeClickEvent)
 
 
-def key_press(event):
-    '''
-    On key press event
-    '''
-
-    '''
-    Autocomplete characters are unavailable until bugs are fixed
-    if str(event.char) == '(':
-        textInput.insert(INSERT, ')')
-
-    if str(event.char) == '[':
-        textInput.insert(INSERT, ']')
-
-    if str(event.char) == '{':
-        textInput.insert(INSERT, '}')
-
-    if str(event.char) == '\'':
-        textInput.insert(INSERT, '\'')
-
-    if str(event.char) == '"':
-        textInput.insert(INSERT, '"')
-    '''
-
-    checkIsSaved()
-
-
-def checkIsSaved():
-    '''
-    Check if file is saved
-    '''
-    global fileSaved, fileLastSave
-
-    try:
-        if fileLastSave != textInput.get(1.0, 'end-1c'):
-            root.title(root_title + ' - ' + fileName + '*')
-            fileSaved = False
-        else:
-            root.title(root_title + ' - ' + fileName)
-            fileSaved = True
-    except NameError:
-        saveNewFileDo()
-
-
-def saveNewFileDo():
-    '''
-    Saves new file
-    '''
-    global fileName, filePath, filePathName, fileExt, fileChosen, fileSaved
-
-    savefileDialog = asksaveasfile(title='Save this file', initialdir='/', initialfile='Untitled.txt', defaultextension='.py', filetypes=[('All Files', '*.*'), ('Text file', '*.txt'), ('Python', '*.py'), ('Node.js', '*.js'), ('Swift', '*.swift'), ('HTML', '*.html'), ('CSS', '*.css')])
-    if str(savefileDialog.name) != '':
-        fileName = str(os.path.split(savefileDialog.name)[1])
-        filePath = str(os.path.split(savefileDialog.name)[0])
-        filePathName = str(savefileDialog.name)
-        fileExt = str(os.path.splitext(fileName)[1])
-        fileChosen = True
-        fileSaved = True
+def putToScreen():
+    with open(filePathFull) as f:
+            content = f.read()
+            textInput.delete('1.0', 'end')
+            textInput.insert('1.0', content)
 
 
 def openFileBtnDo():
     '''
     Opens file dialog, user chooses file
     '''
-    global fileName, filePath, filePathName, fileExt, fileChosen, fileSaved, fileLastSave
+    global filePathName
 
-    openFileDialog = askopenfilename(title='Select file to open', initialdir='/', filetypes=[('All Files', '*.*'), ('Text file', '*.txt'), ('Python', '*.py'), ('Node.js', '*.js'), ('Swift', '*.swift'), ('HTML', '*.html'), ('CSS', '*.css')])
+    openFileDialog = filedialog.askdirectory()
     if str(openFileDialog) != '':
-        fileName = str(os.path.split(openFileDialog)[1])
-        filePath = str(os.path.split(openFileDialog)[0])
         filePathName = str(openFileDialog)
-        fileExt = str(os.path.splitext(fileName)[1])
-        root.title(root_title + ' - ' + fileName)
-        fileChosen = True
-        fileSaved = True
+        root.title(root_title + ' - ' + filePathName)
 
-        with open(filePathName) as f:
-            content = f.read()
-            textInput.delete('1.0', 'end')
-            textInput.insert('1.0', content)
-            fileLastSave = content
+        # Check if file tree is empty
+        if len(tree.get_children()) > 0:
+            tree.delete(*tree.get_children())
+        addToTree(filePathName)
+    
+    else:
+        messagebox.showerror(title='Error', message='No file opened')
+
+
+def treeClickEvent(event):
+    '''
+    Open file when clicked on tree
+    '''
+    global filePathName, filePathFull
+
+    item = tree.selection()[0]
+    clickedFilePath = str(tree.item(item)['text'])
+    if tree.item(item)['values']:
+        parentDir = ''
+        for i in tree.item(item)['values']:
+            parentDir = parentDir + i + '/'
+        clickedFilePath = str(parentDir + clickedFilePath)
+    filePathFull = filePathName + clickedFilePath
+    putToScreen()
 
 
 def runBtnDo():
     '''
     Button to run script
     '''
-    global fileName, filePath, filePathName, fileExt, compilers, fileChosen, fileSaved
+    global filePathName
 
     # Clear terminal
     if str(platform.system()) == 'Darwin' or str(platform.system()) == 'Linux':
@@ -194,65 +137,36 @@ def runBtnDo():
     elif str(platform.system()) == 'Windows':
         os.system('cls')
 
-    # Initialize
-    noRun = False
-    errorReason = ''
-    runList = []
+    try:
+        if filePathFull:
+            fileExt = os.path.splitext(filePathFull)[1]
+            print(fileExt)
+            if fileExt == '.html':
+                webbrowser.open_new_tab(f'file://{filePathFull}')
+            else:
+                subprocess.call([compilers[fileExt], filePathFull])
 
-    # Catches errors
-    if fileChosen == False:
-        newWin(
-            title='Error:',
-            content1='No file chosen',
-        )
-    elif fileSaved == False:
-        saveBtnDo()
-        runBtnDo()
-    elif fileExt == '.css' or fileExt == '.txt':
-        noRun = True
-        errorReason = f'This is a {fileExt} file'
-        newWin(
-                title='Error:',
-                content1=f'This is a {fileExt} file',
-            )
-
-    # Run file in terminal (or web browser for .html)
-    else:
-        if fileExt != '.html':
-            runList.append(compilers[fileExt])
-
-        runList.append(fileName)
-
-        if noRun == False and fileExt != '.html':
-            subprocess.call(runList, cwd=filePath)
-        elif noRun == False and fileExt == '.html':
-            webbrowser.open_new_tab('file://' + filePathName)
-        else:
-            newWin(
-                title='Error:',
-                content1=errorReason,
-            )
+    except NameError:
+        messagebox.showerror(title='Error', message='No file chosen')
 
 
 def saveBtnDo():
     '''
     Button to save changes to file
     '''
-    global fileName, filePath, filePathName, fileExt, fileChosen, fileSaved, fileLastSave
+    global filePathName, filePathFull
 
-    if fileChosen == False:
-        saveNewFileDo()
-    else:
+    if filePathName and filePathFull:
         saveContent = textInput.get(1.0, 'end-1c')
-        with open(filePathName, 'w') as f:
+        with open(filePathFull, 'w') as f:
             f.write(saveContent)
-        with open(filePathName) as f:
+        with open(filePathFull) as f:
             content = f.read()
             textInput.delete('1.0', 'end')
             textInput.insert('1.0', content)
-        root.title(root_title + ' - ' + fileName)
-        fileLastSave = saveContent
-        fileSaved = True
+        root.title(root_title + ' - ' + filePathFull)
+    else:
+        messagebox.showerror('Error', 'File not chosen')
 
 
 def settingsBtnDo():
@@ -260,21 +174,16 @@ def settingsBtnDo():
     Opens settings
     '''
 
-    global compilsers, textInputFont
-
     def pyInterpreterSaveDo():
         # Overwrite Python interpreter/compiler
-        global compilers
         compilers['.py'] = str(pyInterpreterEntry.get())
 
     def nodeInterpreterSaveDo():
         # Overwrite Node.js interpreter/compiler
-        global compilers
         compilers['.js'] = str(nodeInterpreterEntry.get())
 
     def swiftInterpreterSaveDo():
         # Overwrite Swift interpreter/compiler
-        global compilers
         compilers['.swift'] = str(swiftInterpreterEntry.get())
 
     def fontNameSizeOverwriteDo():
@@ -394,10 +303,15 @@ settingsBtn = ttk.Button(btnFrame, text='Settings', command=settingsBtnDo)
 settingsBtn.pack(side=LEFT)
 
 
+# File tree
+tree = ttk.Treeview(root, height=30)
+tree.pack(side=LEFT)
+
+
 
 # Text editor + Scroll bar
 textInputFrame = ttk.Frame(root)
-textInputFrame.pack()
+textInputFrame.pack(side=LEFT)
 if str(platform.system()) == 'Windows':
     textInputWidth = 120
     textInputHeight = 30
@@ -411,12 +325,10 @@ if str(platform.system()) == 'Darwin':
     textInputFont = ('Monaco', 12)
 elif str(platform.system()) == 'Windows' or str(platform.system()) == 'Linux':
     textInputFont = ('Courier New', 12)
-textInput.insert(1.0, 'Welcome to the new version of BSCode!\n\nTo open a file, click "Open"\nTo make a new file, start typing\nTo change settings, click "Settings"\nTo run your file, click "Run in terminal"')
+textInput.insert(1.0, 'Welcome to the new version of BSCode!\n\nTo open a file, click "Open"\nTo change settings, click "Settings"\nTo run your file, click "Run in terminal"')
 textInput.configure(font=textInputFont)
 textInput.pack(side=LEFT)
 scrollbar.config(command=textInput.yview)
-
-root.bind("<Key>", key_press)
 
 '''
 ------------------------------
@@ -444,7 +356,6 @@ elif str(platform.system()) == 'Windows' or str(platform.system()) == 'Linux':
 # Add File menubar
 filemenu = Menu(menubar, tearoff=0)
 filemenu.add_command(label='Open', command=openFileBtnDo, accelerator=openShortcut)
-filemenu.add_command(label='New', command=saveNewFileDo, accelerator=newShortcut)
 filemenu.add_command(label='Save', command=saveBtnDo, accelerator=saveShortcut)
 menubar.add_cascade(label='File', menu=filemenu)
 
