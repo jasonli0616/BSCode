@@ -21,6 +21,7 @@ import os
 import platform
 import webbrowser
 import threading
+import sys
 
 
 
@@ -68,6 +69,8 @@ def addToTree(path, parentiid=''):
     '''
     pathFiles = os.listdir(path)
     for file in pathFiles:
+        if file.startswith('.'):
+            continue
         values = []
         for i in tree.item(parentiid)['values']:
             values.append(i)
@@ -77,15 +80,22 @@ def addToTree(path, parentiid=''):
         if os.path.isdir(f'{path}/{file}'):
             iid = f'{parentiid}id{pathFiles.index(file)}'
             newDir = f'{path}/{file}'
-            threading.Thread(target=lambda:addToTree(newDir, iid)).start()
-    tree.bind("<Double-1>", treeClickEvent)
+            if file.startswith('.'):
+                continue
+            t = threading.Thread(target=lambda:addToTree(newDir, iid))
+            t.start()
+            #print(iid)
+    sys.exit()
 
 
 def putToScreen():
-    with open(filePathFull) as f:
-            content = f.read()
-            textInput.delete('1.0', 'end')
-            textInput.insert('1.0', content)
+    try:
+        with open(filePathFull) as f:
+                content = f.read()
+                textInput.delete('1.0', 'end')
+                textInput.insert('1.0', content)
+    except:
+        messagebox.showerror('Error', 'This file does not contain text.')
 
 
 def openFileBtnDo():
@@ -102,7 +112,8 @@ def openFileBtnDo():
         # Check if file tree is empty
         if len(tree.get_children()) > 0:
             tree.delete(*tree.get_children())
-        addToTree(filePathName)
+        t = threading.Thread(target=lambda:addToTree(filePathName))
+        t.start()
     
     else:
         messagebox.showerror(title='Error', message='No file opened')
@@ -140,7 +151,6 @@ def runBtnDo():
     try:
         if filePathFull:
             fileExt = os.path.splitext(filePathFull)[1]
-            print(fileExt)
             if fileExt == '.html':
                 webbrowser.open_new_tab(f'file://{filePathFull}')
             else:
@@ -306,6 +316,7 @@ settingsBtn.pack(side=LEFT)
 # File tree
 tree = ttk.Treeview(root, height=30)
 tree.pack(side=LEFT)
+tree.bind("<Double-1>", treeClickEvent)
 
 
 
